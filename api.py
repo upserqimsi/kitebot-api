@@ -14,6 +14,15 @@ app = Flask(__name__)
 # Tüm alan adlarına (*) erişim izni verilmiştir.
 CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
+# KÖK DİZİN SAĞLIK KONTROLÜ
+# Render.com sağlık kontrolü (Health Check) ve ana URL'ye gelen istekler için.
+@app.route('/', methods=['GET'])
+def health_check():
+    return jsonify({
+        "status": "ok", 
+        "message": "KiteBot API Sunucusu aktif ve çalışıyor."
+    }), 200
+
 # --- VERİTABANI GÜNCELLEMESİ: POSTGRESQL KULLANIMI ---
 
 # Render.com tarafından sağlanan DATABASE_URL ortam değişkenini kullan.
