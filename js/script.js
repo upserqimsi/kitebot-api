@@ -1,12 +1,18 @@
 let isLoggedIn = false;
 let currentUsername = "";
 let currentKey = ""; // Kullanıcının aktif key'ini burada saklayacağız
-const API_BASE_URL = 'https://kitebot-api.onrender.com'; // Flask API adresiniz
+
+// HATA ÇÖZÜMÜ: API rotaları /api ön ekiyle tanımlandığı için, BASE URL'ye /api eklenmelidir.
+const API_BASE_URL = 'https://kitebot-api.onrender.com/api'; // Flask API adresiniz
 
 // --- GLOBAL FONKSİYONLAR (Gezinti ve Görünüm) ---
 
-// Bu fonksiyon, tüm HTML onclick olaylarının global olarak çalışabilmesi için tanımlanmıştır.
-function changePage(targetPageId) {
+/**
+ * Sayfa görünümünü değiştirir ve URL hash'ini günceller.
+ * Bu fonksiyon, HTML onclick olaylarında kullanılabilmesi için window'a bağlanmıştır.
+ * @param {string} targetPageId - Gösterilecek sayfanın ID'si.
+ */
+window.changePage = (targetPageId) => {
     const navLinks = document.querySelectorAll('.nav-link');
     const pages = document.querySelectorAll('.page');
     
@@ -43,24 +49,22 @@ function updateNavState() {
     const navDownload = document.getElementById('nav-download');
     const profileUsername = document.getElementById('profile-username');
     const trialKeyElement = document.getElementById('trial-key');
-    const expiryDateElement = document.getElementById('key-expiry-date');
 
     if (isLoggedIn) {
         // Giriş yapmış kullanıcı menüsü
-        navLogin.style.display = 'none';
-        navProfile.style.display = 'block';
-        navFeedback.style.display = 'block';
-        navDownload.style.display = 'block';
+        if (navLogin) navLogin.style.display = 'none';
+        if (navProfile) navProfile.style.display = 'block';
+        if (navFeedback) navFeedback.style.display = 'block';
+        if (navDownload) navDownload.style.display = 'block';
 
         if (profileUsername) profileUsername.textContent = currentUsername;
         if (trialKeyElement) trialKeyElement.textContent = currentKey;
-        // Expiry bilgisini burada güncellemiyoruz, girişten sonra updateAuthInfo içinde güncellenecek.
     } else {
         // Misafir menüsü
-        navLogin.style.display = 'block';
-        navProfile.style.display = 'none';
-        navFeedback.style.display = 'none';
-        navDownload.style.display = 'none';
+        if (navLogin) navLogin.style.display = 'block';
+        if (navProfile) navProfile.style.display = 'none';
+        if (navFeedback) navFeedback.style.display = 'none';
+        if (navDownload) navDownload.style.display = 'none';
     }
 }
 
@@ -76,10 +80,13 @@ function loadPageFromHash() {
         targetId = 'auth';
     }
 
-    changePage(targetId);
+    window.changePage(targetId);
 }
 
-// Auth Sayfası Geçişi (Giriş/Kayıt)
+/**
+ * Auth Sayfası Geçişi (Giriş/Kayıt)
+ * @param {('login'|'register')} type - Gösterilecek form tipi.
+ */
 window.showAuth = (type) => {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -87,22 +94,30 @@ window.showAuth = (type) => {
     
     document.querySelectorAll('.auth-toggle .toggle-btn').forEach(btn => btn.classList.remove('active'));
 
-    if (type === 'login') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        title.textContent = "Kullanıcı Girişi";
-        document.querySelector('.auth-toggle .toggle-btn:nth-child(1)').classList.add('active');
-    } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-        title.textContent = "Yeni Kullanıcı Kaydı";
-        document.querySelector('.auth-toggle .toggle-btn:nth-child(2)').classList.add('active');
+    if (loginForm && registerForm && title) {
+        if (type === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            title.textContent = "Kullanıcı Girişi";
+            document.querySelector('.auth-toggle .toggle-btn:nth-child(1)')?.classList.add('active');
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            title.textContent = "Yeni Kullanıcı Kaydı";
+            document.querySelector('.auth-toggle .toggle-btn:nth-child(2)')?.classList.add('active');
+        }
     }
 }
 
 // --- API ETKİLEŞİMİ FONKSİYONLARI ---
 
-// Kullanıcı durumu ve Key bilgilerini güncelleyen ve localStorage'a kaydeden fonksiyon
+/**
+ * Kullanıcı durumu ve Key bilgilerini güncelleyen ve localStorage'a kaydeden fonksiyon
+ * @param {boolean} loggedIn - Giriş yapılıp yapılmadığı.
+ * @param {string} [username=""] - Kullanıcı adı.
+ * @param {string} [key=""] - API Key.
+ * @param {string} [expiry=""] - Key son kullanma tarihi.
+ */
 function setAuthStatus(loggedIn, username = "", key = "", expiry = "") {
     isLoggedIn = loggedIn;
     currentUsername = username;
@@ -114,23 +129,44 @@ function setAuthStatus(loggedIn, username = "", key = "", expiry = "") {
         localStorage.setItem('kitebot_key', key);
         localStorage.setItem('kitebot_expiry', expiry);
     } else {
-        localStorage.clear();
+        // İYİLEŞTİRME: Yalnızca kendi key'lerimizi sileriz, tüm localStorage'ı değil.
+        localStorage.removeItem('kitebot_logged_in');
+        localStorage.removeItem('kitebot_username');
+        localStorage.removeItem('kitebot_key');
+        localStorage.removeItem('kitebot_expiry');
     }
 }
 
-// Giriş veya Kayıt başarılı olduktan sonra Key bilgilerini DOM'a yazar
+/**
+ * Giriş veya Kayıt başarılı olduktan sonra Key bilgilerini DOM'a yazar.
+ * @param {string} key - API Key.
+ * @param {string} expiry - Key son kullanma tarihi (ISO string).
+ */
 function updateAuthInfo(key, expiry) {
     const trialKeyElement = document.getElementById('trial-key');
     const expiryDateElement = document.getElementById('key-expiry-date');
 
     if (trialKeyElement) trialKeyElement.textContent = key;
-    if (expiryDateElement) {
-        const date = new Date(expiry);
-        expiryDateElement.textContent = date.toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (expiryDateElement && expiry) {
+        // Hata yakalama eklendi: Eğer expiry geçerli bir tarih değilse, 'Bilinmiyor' yazar.
+        try {
+            const date = new Date(expiry);
+            if (!isNaN(date)) {
+                 expiryDateElement.textContent = date.toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' });
+            } else {
+                 expiryDateElement.textContent = "Tarih Bilgisi Geçersiz";
+            }
+        } catch (e) {
+            expiryDateElement.textContent = "Tarih Bilinmiyor";
+        }
     }
 }
 
-// Giriş/Kayıt Formu İşleyicisi (GERÇEK API ENTEGRASYONU)
+/**
+ * Giriş/Kayıt Formu İşleyicisi
+ * @param {Event} e - Form event objesi.
+ * @param {('login'|'register')} type - İşlem tipi.
+ */
 window.handleAuth = async (e, type) => {
     e.preventDefault();
     const formId = type === 'login' ? 'login-form' : 'register-form';
@@ -138,18 +174,22 @@ window.handleAuth = async (e, type) => {
     const messageElement = document.getElementById(msgId);
     
     const form = document.getElementById(formId);
+    if (!form || !messageElement) return;
+
     const data = {
-        email: form.querySelector(`input[type="email"]`).value,
-        password: form.querySelector(`input[type="password"]`).value,
+        email: form.querySelector(`input[type="email"]`)?.value,
+        password: form.querySelector(`input[type="password"]`)?.value,
     };
+    
     if (type === 'register') {
-         data.username = form.querySelector(`input[type="text"]`).value;
+         data.username = form.querySelector(`input[type="text"]`)?.value;
     }
     
     messageElement.textContent = 'Sunucuya bağlanılıyor...';
     messageElement.style.color = '#FFD700';
 
     try {
+        // DÜZELTME: API_BASE_URL şimdi '/api' içerdiği için istek rotası doğru çalışacak.
         const response = await fetch(`${API_BASE_URL}/${type}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -161,9 +201,9 @@ window.handleAuth = async (e, type) => {
         if (response.ok && result.status === 'success') {
             
             // Başarılı giriş/kayıt sonrası KEY ve kullanıcı adını sakla
-            const key = result.key;
-            const expiry = result.expiry;
-            const username = result.username; 
+            const key = result.key || currentKey; // Key'in gelmesi beklenir
+            const expiry = result.expiry || localStorage.getItem('kitebot_expiry') || "";
+            const username = result.username || data.username || currentUsername; // Register'da username doğrudan gelmeli
             
             setAuthStatus(true, username, key, expiry); 
             updateNavState();
@@ -173,16 +213,18 @@ window.handleAuth = async (e, type) => {
             messageElement.style.color = '#00FF00';
 
             // Profil sayfasına yönlendir
-            setTimeout(() => changePage('profile'), 1000);
+            setTimeout(() => window.changePage('profile'), 1000);
             
         } else {
             // Sunucu hatası (400, 409, 401 vb.)
-            messageElement.textContent = `Hata: ${result.message}`;
+            const errorMessage = result.message || "Bilinmeyen bir hata oluştu.";
+            messageElement.textContent = `Hata: ${errorMessage}`;
             messageElement.style.color = '#FF0000';
         }
 
     } catch (error) {
-        messageElement.textContent = `Ağ Hatası: Sunucuya ulaşılamıyor (${API_BASE_URL}). Flask sunucunuz çalışıyor mu?`;
+        // HATA MESAJI: Base URL'nin doğru olduğunu hatırlatmak için güncellendi
+        messageElement.textContent = `Ağ Hatası: Sunucuya ulaşılamıyor (${API_BASE_URL}). Lütfen Render.com sunucunuzun aktif olduğundan emin olun.`;
         messageElement.style.color = '#FF0000';
         console.error('API Hatası:', error);
     }
@@ -192,26 +234,36 @@ window.handleAuth = async (e, type) => {
 window.handleLogout = () => {
     setAuthStatus(false);
     updateNavState();
-    changePage('about'); // Ana sayfaya yönlendir
+    window.changePage('about'); // Ana sayfaya yönlendir
 }
 
-// Geri Bildirim Formu İşleyicisi (GERÇEK API ENTEGRASYONU)
+// Geri Bildirim Formu İşleyicisi
 window.submitFeedback = async (e) => {
     e.preventDefault();
-    const feedbackText = document.getElementById('feedback-text').value;
+    const feedbackText = document.getElementById('feedback-text')?.value;
     const feedbackType = document.querySelector('input[name="feedback-type"]:checked')?.value;
     const messageElement = document.getElementById('feedback-message');
+    const form = document.getElementById('feedback-form');
     
-    if (!feedbackType || !feedbackText) {
-        messageElement.textContent = 'Lütfen tür ve içerik girin.';
-        messageElement.style.color = '#FF0000';
+    if (!feedbackType || !feedbackText || !messageElement || !form) {
+        if (messageElement) {
+             messageElement.textContent = 'Lütfen tür ve içerik girin.';
+             messageElement.style.color = '#FF0000';
+        }
         return;
     }
     
+    if (!currentKey) {
+        messageElement.textContent = 'Hata: Geri bildirim göndermek için giriş yapmış olmalısınız.';
+        messageElement.style.color = '#FF0000';
+        return;
+    }
+
     messageElement.textContent = 'Geri bildiriminiz gönderiliyor...';
     messageElement.style.color = '#FFD700';
 
     try {
+        // DÜZELTME: API_BASE_URL'ye '/submit_feedback' eklenirken API_BASE_URL'nin /api içerdiğinden eminiz.
         const response = await fetch(`${API_BASE_URL}/submit_feedback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -227,9 +279,10 @@ window.submitFeedback = async (e) => {
         if (response.ok && result.status === 'success') {
             messageElement.textContent = result.message;
             messageElement.style.color = '#00FF00';
-            document.getElementById('feedback-form').reset();
+            form.reset();
         } else {
-             messageElement.textContent = `Hata: ${result.message}`;
+             const errorMessage = result.message || "Bilinmeyen bir API hatası oluştu.";
+             messageElement.textContent = `Hata: ${errorMessage}`;
              messageElement.style.color = '#FF0000';
         }
     } catch (error) {
@@ -265,13 +318,22 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetPageId = e.target.getAttribute('data-page');
-            changePage(targetPageId);
+            // changePage'i doğrudan window'dan çağırıyoruz
+            if (targetPageId) {
+                window.changePage(targetPageId);
+            }
         });
     });
 
     // İlk yüklemede durumu kontrol et ve sayfayı yükle
     loadInitialStatus();
+    updateNavState(); // Navigasyon durumunu yüklemeden hemen sonra güncelle
     loadPageFromHash();
     window.addEventListener('hashchange', loadPageFromHash);
+    
+    // Auth sayfasında default olarak Giriş formunu göster
+    if (window.location.hash.substring(1) === 'auth') {
+        window.showAuth('login');
+    }
 
 });
