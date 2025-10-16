@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Kiting Bot | Kontrollü Erişim</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header id="header">
+    <nav>
+        <div class="logo">KITE.BOT</div>
+        <ul>
+            <li><a href="#about" class="nav-link active" data-page="about">Hakkında</a></li>
+            <li><a href="#patchnotes" class="nav-link" data-page="patchnotes">Yama Notları</a></li> 
+            
+            <li><a href="#guide" class="nav-link" data-page="guide">Kullanım Kılavuzu</a></li>
+
+            <li id="nav-login"><a href="#auth" class="nav-link" data-page="auth">Giriş / Kayıt</a></li>
+            <li id="nav-profile" style="display: none;"><a href="#profile" class="nav-link" data-page="profile">Profil & Key</a></li>
+            <li id="nav-feedback" style="display: none;"><a href="#feedback" class="nav-link" data-page="feedback">Geri Bildirim</a></li>
+            <li id="nav-download" style="display: none;"><a href="#download" class="nav-link" data-page="download">İndir & Kurulum</a></li>
+        </ul>
+    </nav>
+</header>
+
+    <main id="content-area">
+        
+        <section id="about" class="page active">
+            <div class="container">
+                <h1>League of Legends Kiting Bot</h1>
+                <p class="subtitle">ADC performansınızı kusursuz zamanlama ile zirveye taşıyın.</p>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h3>🤖 Gelişmiş Güvenlik</h3>
+                        <p>Gaussian Jitter, kasıtlı hata simülasyonu ve Key koruması ile Vanguard'a direnç.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🔑 Kontrollü Dağıtım</h3>
+                        <p>Botu kullanmak için 3 günlük deneme key'i gereklidir. Erişim sadece kayıtlı kullanıcılara açıktır.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>✨ Modern Arayüz</h3>
+                        <p>TTK Bootstrap ile tasarlanmış, kullanımı kolay, şık ve koyu tema destekli GUI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="patchnotes" class="page hidden">
+            <div class="container">
+                <h2>Yama Notları (Patch Notes)</h2>
+                <p class="subtitle">Botun tüm geliştirme ve güvenlik güncellemelerini buradan takip edebilirsiniz.</p>
+
+                <div class="patch-version">
+                    <h3>V0.1.3 - Güvenlik & Performans Optimizasyonu</h3>
+                    <span class="patch-date">15 Ekim 2025</span>
+                    <ul class="patch-list">
+                        <li class="added">🔑 Yeni: Key (Lisans) sistemi için altyapı entegre edildi.</li>
+                        <li class="added">🤖 Geliştirildi: Kiting gecikmeleri için rastgelelik dağılımı (Jitter) **Normal (Gaussian) Dağılım** ile değiştirildi.</li>
+                        <li class="fix">✅ Düzeltildi: 'A' tuşu ve Sağ Tık basılı kalma süreleri rastgeleleştirilerek mükemmel tutarlılık ortadan kaldırıldı.</li>
+                        <li class="removed">🚨 Güvenlik: Bot döngüsüne binde bir oranında kasıtlı hata atlama mekanizması eklendi.</li>
+                    </ul>
+                </div>
+                
+                <div class="patch-version">
+                    <h3>V0.1.0 - İlk Yayın</h3>
+                    <span class="patch-date">01 Ekim 2025</span>
+                    <ul class="patch-list">
+                        <li class="added">✨ Yeni: İlk sürüm yayınlandı. Temel orb-walking mantığı ve şampiyon veri tabanı eklendi.</li>
+                        <li class="added">🎨 Yeni: TTK Bootstrap ile modern GUI eklendi.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="guide" class="page hidden">
+             <div class="container">
+                <h2>Kullanım Kılavuzu</h2>
+                
+                <h3>1. Yapılandırma</h3>
+                <p>Arayüzde şampiyonunuzu seçin, seviyenizi ve isteğe bağlı olarak anlık saldırı hızınızı (AS) girin. "Delay Güncelle" butonuna basmayı unutmayın!</p>
+
+                <h3>2. Başlatma/Durdurma (Toggle)</h3>
+                <p>LoL oyununuz açıkken, bot arayüzü odaklanmış durumdayken **Spacebar (Boşluk Çubuğu)** tuşuna bir kez basarak botu **AÇIN**. Bot otomatik olarak A-Tıkla komutlarını göndermeye başlayacaktır.</p>
+                
+                <h3>3. Key Aktivasyonu</h3>
+                <p>Bot EXE'sini ilk çalıştırdığınızda, **Profil & Key** sayfanızda size verilen Key'i girerek botunuzu etkinleştirmeniz gerekmektedir.</p>
+
+                <h3>🚨 Uyarı</h3>
+                <p class="warning-box">Güvenlik için lütfen botu sadece LoL penceresi aktif ve odaklanmış durumdayken kullanın.</p>
+            </div>
+        </section>
+
+        <section id="auth" class="page hidden">
+            <div class="container auth-container">
+                <h2 id="auth-title">Kullanıcı Girişi</h2>
+                <div class="auth-toggle">
+                    <button class="toggle-btn active" onclick="showAuth('login')">Giriş Yap</button>
+                    <button class="toggle-btn" onclick="showAuth('register')">Kayıt Ol</button>
+                </div>
+
+                <form id="login-form" onsubmit="handleAuth(event, 'login')">
+                    <input type="email" id="login-email" placeholder="E-posta Adresi" required>
+                    <input type="password" id="login-password" placeholder="Şifre" required>
+                    <button type="submit" class="auth-button">Giriş Yap</button>
+                    <p id="login-message" class="message"></p>
+                </form>
+
+                <form id="register-form" onsubmit="handleAuth(event, 'register')" style="display: none;">
+                    <input type="text" id="register-username" placeholder="Kullanıcı Adı" required>
+                    <input type="email" id="register-email" placeholder="E-posta Adresi" required>
+                    <input type="password" id="register-password" placeholder="Şifre (Min 6 Karakter)" required>
+                    <button type="submit" class="auth-button">Kayıt Ol</button>
+                    <p id="register-message" class="message"></p>
+                </form>
+            </div>
+        </section>
+
+        <section id="profile" class="page hidden">
+            <div class="container">
+                <h2>Profil ve Key Yönetimi</h2>
+                <p>Hoş geldiniz, <span id="profile-username" class="neon-text">KullanıcıAdı</span>!</p>
+
+                <div class="key-status-box">
+                    <h3>Deneme Key'iniz</h3>
+                    <p class="key-value" id="trial-key">KEY-SIMULATED-E4G-K7L-9A2X</p>
+                    <p>Geçerlilik: <span id="key-expiry-date">3 Gün Kaldı (18 Ekim 2025'e kadar)</span></p>
+                    <p class="warning-box">**DİKKAT:** Bu Key, botun EXE dosyasını çalıştırırken girmeniz gereken lisans anahtarınızdır.</p>
+                </div>
+
+                <button class="download-button" onclick="changePage('download')">Botu İndir</button>
+                <button class="auth-button logout-button" onclick="handleLogout()">Çıkış Yap</button>
+            </div>
+        </section>
+
+        <section id="feedback" class="page hidden">
+            <div class="container">
+                <h2>Geri Bildirim Alanı</h2>
+                <p class="subtitle">Botun performansı, hataları veya geliştirme önerileriniz hakkında bize yazın.</p>
+                
+                <form id="feedback-form" onsubmit="submitFeedback(event)">
+                    <textarea id="feedback-text" rows="8" placeholder="Geri bildiriminizi buraya yazın..." required></textarea>
+                    <div class="feedback-options">
+                        <label>
+                            <input type="radio" name="feedback-type" value="Hata" required> Hata Bildirimi
+                        </label>
+                        <label>
+                            <input type="radio" name="feedback-type" value="Öneri"> Özellik Önerisi
+                        </label>
+                        <label>
+                            <input type="radio" name="feedback-type" value="Teşekkür"> Teşekkür
+                        </label>
+                    </div>
+                    <button type="submit" class="auth-button">Geri Bildirimi Gönder</button>
+                    <p id="feedback-message" class="message"></p>
+                </form>
+            </div>
+        </section>
+
+
+        <section id="download" class="page hidden">
+            <div class="container">
+                <h2>Botu İndir ve Kurulum</h2>
+                <p>Botun en güncel Key korumalı sürümünü indirmek için aşağıdaki butonu kullanın.</p>
+                
+                <a href="/downloads/kite_bot_v0.2.exe" class="download-button" id="final-download-link">
+                    Key Korumalı Botu İndir (v0.2.EXE)
+                </a>
+
+                <p class="warning-box">**Önemli:** İndirdikten sonra EXE dosyasını çalıştırın ve size Profil sayfanızda verilen Key'i girerek botu etkinleştirin.</p>
+                
+                <ol class="setup-list">
+                    <li>**Gereksinimler:** Yok (EXE bağımsız çalışır).</li>
+                    <li>İndirdiğiniz dosyayı güvenilir bir konuma taşıyın.</li>
+                    <li>Botu çalıştırın ve Key'inizi girin.</li>
+                    <li>Oyun içindeyken Spacebar ile başlatın/durdurun.</li>
+                </ol>
+            </div>
+        </section>
+
+         <section id="guide" class="page hidden">
+        <div class="container">
+            <h2>Kullanım Kılavuzu</h2>
+            
+            <h3>1. Yapılandırma</h3>
+            <p>Arayüzde şampiyonunuzu seçin, seviyenizi ve isteğe bağlı olarak anlık saldırı hızınızı (AS) girin. "Delay Güncelle" butonuna basmayı unutmayın!</p>
+
+            <h3>2. Başlatma/Durdurma (Toggle)</h3>
+            <p>LoL oyununuz açıkken, bot arayüzü odaklanmış durumdayken **Spacebar (Boşluk Çubuğu)** tuşuna bir kez basarak botu **AÇIN**. Bot otomatik olarak A-Tıkla komutlarını göndermeye başlayacaktır.</p>
+            
+            <h3>3. Key Aktivasyonu</h3>
+            <p>Bot EXE'sini ilk çalıştırdığınızda, **Profil & Key** sayfanızda size verilen Key'i girerek botunuzu etkinleştirmeniz gerekmektedir.</p>
+
+            <h3>🚨 Uyarı</h3>
+            <p class="warning-box">Güvenlik için lütfen botu sadece LoL penceresi aktif ve odaklanmış durumdayken kullanın.</p>
+        </div>
+    </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Kite Bot Projesi. Kontrollü Dağıtım Sistemli.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
