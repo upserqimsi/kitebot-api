@@ -6,18 +6,38 @@ from datetime import datetime, timedelta
 import secrets 
 
 # --- Güvenlik Ayarları ---
-# Admin Şifresi İsteğiniz üzerine 120921 olarak ayarlandı.
 ADMIN_SECRET_KEY = "120921" 
 # --- Uygulama Yapılandırması ---
 app = Flask(__name__)
 
-# CORS AYARI GÜNCELLENDİ: Web sitenizin (Netlify) adresine erişim izni veriyoruz.
-# Tüm alan adlarına (*) erişim izni verilmiştir. Bu, Netlify hatalarını çözecektir.
+# CORS AYARI
+# Tüm alan adlarına (*) erişim izni verilmiştir.
 CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
-# SQLite Veritabanı yapılandırması
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+# --- VERİTABANI GÜNCELLEMESİ: POSTGRESQL KULLANIMI ---
+
+# Render.com tarafından sağlanan DATABASE_URL ortam değişkenini kullan.
+# Eğer yerel çalışıyorsa (test amaçlı) SQLite kullanır, ancak Render'da PostgreSQL zorunludur.
+# 'DATABASE_URL' PostresQL bağlantı URI'sini içermelidir (örn: postgresql://user:pass@host/db).
+
+# SQLAlchemy 2.0 uyumluluğu için "postgres" yerine "postgresql" kullan
+# Ayrıca, Render'da postgres bağlantı linki 'postgres' ile başlayabilir, bunu düzeltmek gerekir.
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith('postgres://'):
+    # PostgreSQL uyumluluğu için protokolü değiştir
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
+# Eğer DATABASE_URL tanımlı değilse, yerel SQLite'a geri dön (Render'da bu çalışmayacak!)
+if db_url:
+    print("--- Harici Veritabanı (PostgreSQL) Kullanılıyor ---")
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+else:
+    # Bu blok sadece yerel geliştirme ortamında çalışmalıdır.
+    print("--- Uyarı: Yerel SQLite Veritabanı Kullanılıyor (Render'da Hata Verir) ---")
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -30,6 +50,8 @@ def generate_unique_key():
     return '-'.join(key_parts)
 
 class User(db.Model):
+    # Eğer SQLite'dan geçiş yapıyorsanız, tablonuzun adını belirtmek faydalı olabilir:
+    __tablename__ = 'user' 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -37,13 +59,14 @@ class User(db.Model):
     key = db.Column(db.String(100), unique=True)
     key_expiry = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
-    last_ip = db.Column(db.String(45)) # YENİ SÜTUN
-    last_key_issue_date = db.Column(db.DateTime) # YENİ SÜTUN
+    last_ip = db.Column(db.String(45)) 
+    last_key_issue_date = db.Column(db.DateTime) 
 
     def __repr__(self):
         return f'<User {self.username}>'
 
 class Feedback(db.Model):
+    __tablename__ = 'feedback'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     feedback_type = db.Column(db.String(50), nullable=False)
@@ -54,8 +77,10 @@ class Feedback(db.Model):
         return f'<Feedback {self.feedback_type} by {self.user_id}>'
 
 # Veritabanını oluşturma (Uygulama ilk kez çalıştırıldığında)
+# PostgreSQL kullanıldığında bu, tabloları oluşturacaktır.
 with app.app_context():
-    db.create_all()
+    # Eğer tablolar zaten varsa bu satır bir şey yapmaz.
+    db.create_all() 
 
 # --- Yardımcı Fonksiyonlar ---
 
@@ -75,7 +100,7 @@ def get_client_ip():
 
 # --- API Uç Noktaları ---
 
-# 1. Kayıt Uç Noktası (GÜNCELLENDİ)
+# 1. Kayıt Uç Noktası
 @app.route('/api/register', methods=['POST'])
 def register_user():
     data = request.json
@@ -88,7 +113,6 @@ def register_user():
         return jsonify({"status": "error", "message": "Eksik bilgi."}), 400
 
     # IP KISITLAMA KONTROLÜ
-    # Bu IP adresinden son 30 gün içinde Key almış kullanıcı var mı?
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     
     # Aynı IP'den son 30 gün içinde Key almış ve Key'i hala aktif olan kullanıcıları kontrol et
@@ -116,8 +140,8 @@ def register_user():
         password=password, 
         key=new_key,
         key_expiry=expiry_date,
-        last_ip=client_ip, # YENİ: IP kaydı
-        last_key_issue_date=datetime.utcnow() # YENİ: Key verme tarihini kaydet
+        last_ip=client_ip, 
+        last_key_issue_date=datetime.utcnow() 
     )
 
     try:
@@ -132,7 +156,9 @@ def register_user():
         }), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({"status": "error", "message": f"Kayıt sırasında hata oluştu: {e}"}), 500
+        # Hata ayıklama için daha detaylı hata mesajı basılabilir.
+        # print(f"Kayıt sırasında hata oluştu: {e}") 
+        return jsonify({"status": "error", "message": "Kayıt sırasında veritabanı hatası oluştu. Lütfen Render loglarını kontrol edin."}), 500
 
 
 # 2. Giriş Uç Noktası
@@ -155,7 +181,7 @@ def login_user():
     else:
         return jsonify({"status": "error", "message": "E-posta veya şifre hatalı."}), 401
 
-# Kullanıcıları Listeleme Uç Noktası (GÜNCELLENDİ)
+# Kullanıcıları Listeleme Uç Noktası
 @app.route('/api/admin/users', methods=['POST'])
 def admin_list_users():
     data = request.json
@@ -327,6 +353,7 @@ def admin_generate_key():
         
         user.key = new_key
         user.key_expiry = expiry_date
+        user.last_key_issue_date = datetime.utcnow() # Key atandığında tarihi güncelle
         db.session.commit()
         
         return jsonify({
@@ -344,7 +371,8 @@ def admin_generate_key():
             email=f"{temp_username}@adminlicense.com",
             password=secrets.token_hex(16), 
             key=new_key,
-            key_expiry=expiry_date
+            key_expiry=expiry_date,
+            last_key_issue_date=datetime.utcnow() # Key üretildiğinde tarihi kaydet
         )
         
         try:
@@ -394,5 +422,7 @@ def admin_list_feedback():
 
 # --- Uygulamanın Çalıştırılması ---
 if __name__ == '__main__':
-    # Hata ayıklama modunda çalışırken, bu, veritabanını yeni sütunlarla yeniden oluşturacaktır.
+    # Render'da Gunicorn veya başka bir WSGI sunucusu kullanılacağı için,
+    # buradaki app.run() Render tarafından göz ardı edilecektir.
+    # Ancak yerel testler için tutulmasında sakınca yoktur.
     app.run(debug=True, port=5000)
