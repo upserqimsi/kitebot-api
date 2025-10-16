@@ -1,7 +1,7 @@
 let isLoggedIn = false;
 let currentUsername = "";
 let currentKey = ""; // Kullanıcının aktif key'ini burada saklayacağız
-const API_BASE_URL = 'http://127.0.0.1:5000/api'; // Flask API adresiniz
+const API_BASE_URL = 'https://kitebot-api.onrender.com'; // Flask API adresiniz
 
 // --- GLOBAL FONKSİYONLAR (Gezinti ve Görünüm) ---
 
@@ -273,4 +273,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInitialStatus();
     loadPageFromHash();
     window.addEventListener('hashchange', loadPageFromHash);
+
 });
