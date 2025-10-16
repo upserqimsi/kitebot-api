@@ -12,10 +12,8 @@ ADMIN_SECRET_KEY = "120921"
 app = Flask(__name__)
 
 # CORS AYARI GÜNCELLENDİ: Web sitenizin (Netlify) adresine erişim izni veriyoruz.
-CORS(app, resources={r"/api/*": {"origins": [
-    "https://silly-scone-62a71b.netlify.app", 
-    "http://localhost:5000" # Yerel test için eklenmiştir
-]}}) 
+# Tüm alan adlarına (*) erişim izni verilmiştir. Bu, Netlify hatalarını çözecektir.
+CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
 # SQLite Veritabanı yapılandırması
 basedir = os.path.abspath(os.path.dirname(__file__))
