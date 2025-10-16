@@ -6,10 +6,16 @@ from datetime import datetime, timedelta
 import secrets 
 
 # --- Güvenlik Ayarları ---
-ADMIN_SECRET_KEY = "Sizin-Gizli-Admin-Sifreniz-120921" # Lütfen bu şifreyi değiştirin!
+# Admin Şifresi İsteğiniz üzerine 120921 olarak ayarlandı.
+ADMIN_SECRET_KEY = "120921" 
 # --- Uygulama Yapılandırması ---
 app = Flask(__name__)
-CORS(app) 
+
+# CORS AYARI GÜNCELLENDİ: Web sitenizin (Netlify) adresine erişim izni veriyoruz.
+CORS(app, resources={r"/api/*": {"origins": [
+    "https://silly-scone-62a71b.netlify.app", 
+    "http://localhost:5000" # Yerel test için eklenmiştir
+]}}) 
 
 # SQLite Veritabanı yapılandırması
 basedir = os.path.abspath(os.path.dirname(__file__))
